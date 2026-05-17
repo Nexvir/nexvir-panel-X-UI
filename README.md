@@ -86,7 +86,7 @@ nexvir-panel/
 ## ⚙️ اجرای دستی (بدون نصب)
 
 ```bash
-git clone https://github.com/YOUR_USER/nexvir-panel.git
+git clone https://github.com/Nexvir/nexvir-panel.git
 cd nexvir-panel/backend
 cp .env.example .env
 # .env را ویرایش کنید
