@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexvir Panel — ورود</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#07090f; --surface:#0d1117; --surface2:#131a24;
+    --border:#1e2d3d; --border2:#243447;
+    --accent:#00d4ff; --accent2:#0099cc;
+    --accent-dim:rgba(0,212,255,0.12); --accent-glow:rgba(0,212,255,0.3);
+    --green:#00e676; --red:#ff4757;
+    --text:#e8f0f8; --text2:#8a9bb0; --text3:#4a5f74;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+  .orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;}
+  .orb1{width:400px;height:400px;background:rgba(0,212,255,0.06);top:-100px;right:-100px;}
+  .orb2{width:300px;height:300px;background:rgba(0,153,204,0.05);bottom:100px;left:-50px;}
+  .box{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;width:380px;max-width:90vw;position:relative;z-index:1;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:32px;}
+  .logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 24px var(--accent-glow);}
+  .logo-text{font-size:26px;font-weight:900;letter-spacing:1px;}
+  .logo-text span{color:var(--accent);}
+  h2{font-size:16px;color:var(--text2);text-align:center;margin-bottom:28px;font-weight:400;}
+  .form-group{margin-bottom:16px;}
+  .form-label{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px;display:block;letter-spacing:0.5px;}
+  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+  .form-input:focus{border-color:var(--accent);}
+  .form-input::placeholder{color:var(--text3);}
+  .btn{width:100%;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;box-shadow:0 4px 14px var(--accent-glow);transition:all 0.2s;margin-top:8px;}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--accent-glow);}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .error{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:#ff4757;border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:14px;display:none;}
+  .footer{text-align:center;margin-top:20px;font-size:11px;color:var(--text3);}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="box">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">Nex<span>vir</span></div>
+  </div>
+  <h2>به پنل مدیریت خوش آمدید</h2>
+  <div class="error" id="err"></div>
+  <div class="form-group">
+    <label class="form-label">نام کاربری</label>
+    <input class="form-input" id="username" placeholder="admin" dir="ltr" autocomplete="username">
+  </div>
+  <div class="form-group">
+    <label class="form-label">رمز عبور</label>
+    <input class="form-input" id="password" type="password" placeholder="••••••••" dir="ltr" autocomplete="current-password">
+  </div>
+  <button class="btn" id="loginBtn" onclick="login()">ورود به پنل</button>
+  <div class="footer">Nexvir Panel v1.0.0</div>
+</div>
+<script>
+  // If already logged in, redirect
+  if (localStorage.getItem('nexvir_token')) {
+    window.location.href = '/';
+  }
+
+  document.getElementById('password').addEventListener('keypress', e => {
+    if (e.key === 'Enter') login();
+  });
+
+  async function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const err = document.getElementById('err');
+    const btn = document.getElementById('loginBtn');
+    err.style.display = 'none';
+
+    if (!username || !password) {
+      err.textContent = 'نام کاربری و رمز عبور را وارد کنید';
+      err.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'در حال ورود...';
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'خطا در ورود');
+      localStorage.setItem('nexvir_token', data.token);
+      localStorage.setItem('nexvir_user', data.username);
+      window.location.href = '/';
+    } catch (e) {
+      err.textContent = e.message;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'ورود به پنل';
+    }
+  }
+</script>
+</body>
+</html>

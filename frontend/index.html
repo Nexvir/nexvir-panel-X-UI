@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexvir Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07090f;
+    --surface: #0d1117;
+    --surface2: #131a24;
+    --border: #1e2d3d;
+    --border2: #243447;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --accent-dim: rgba(0,212,255,0.12);
+    --accent-glow: rgba(0,212,255,0.3);
+    --green: #00e676;
+    --green-dim: rgba(0,230,118,0.12);
+    --red: #ff4757;
+    --red-dim: rgba(255,71,87,0.12);
+    --yellow: #ffd600;
+    --yellow-dim: rgba(255,214,0,0.12);
+    --text: #e8f0f8;
+    --text2: #8a9bb0;
+    --text3: #4a5f74;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Glow orbs */
+  .bg-orb {
+    position:fixed;
+    border-radius:50%;
+    filter:blur(100px);
+    pointer-events:none;
+    z-index:0;
+  }
+  .orb1 { width:400px; height:400px; background:rgba(0,212,255,0.06); top:-100px; right:-100px; }
+  .orb2 { width:300px; height:300px; background:rgba(0,153,204,0.05); bottom:100px; left:-50px; }
+
+  /* Layout */
+  .layout { display:flex; min-height:100vh; position:relative; z-index:1; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    padding: 0;
+    position:fixed;
+    top:0; right:0;
+    height:100vh;
+    z-index:100;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+
+  .logo-icon {
+    width:36px; height:36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .logo-text { font-size:20px; font-weight:900; letter-spacing:1px; }
+  .logo-text span { color:var(--accent); }
+
+  .sidebar-nav { flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:4px; overflow-y:auto; }
+
+  .nav-section { font-size:10px; color:var(--text3); font-weight:600; letter-spacing:2px; text-transform:uppercase; padding: 12px 8px 6px; }
+
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 10px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition: all 0.2s;
+    color: var(--text2);
+    font-size:13px;
+    font-weight:500;
+    position:relative;
+  }
+  .nav-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-item.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.2);
+  }
+  .nav-item .icon { width:18px; text-align:center; font-size:15px; }
+  .nav-badge {
+    margin-right:auto;
+    background:var(--red);
+    color:#fff;
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:10px;
+    font-weight:700;
+  }
+  .nav-badge.green { background:var(--green); color:#000; }
+
+  .sidebar-footer {
+    padding:16px;
+    border-top:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .admin-avatar {
+    width:34px; height:34px;
+    background: linear-gradient(135deg, #00d4ff33, #0099cc33);
+    border:1px solid var(--border2);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px;
+  }
+  .admin-info { flex:1; }
+  .admin-name { font-size:12px; font-weight:600; }
+  .admin-role { font-size:10px; color:var(--text3); }
+
+  /* Main */
+  .main { margin-right:240px; flex:1; padding:24px; }
+
+  /* Topbar */
+  .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:28px;
+  }
+  .page-title { font-size:22px; font-weight:700; }
+  .page-title span { color:var(--accent); }
+  .topbar-right { display:flex; gap:10px; align-items:center; }
+
+  .btn {
+    padding:8px 16px; border-radius:8px; border:none; cursor:pointer;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size:13px; font-weight:600;
+    transition: all 0.2s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#000;
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px var(--accent-glow); }
+  .btn-ghost {
+    background: var(--surface2);
+    color:var(--text2);
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-danger { background:var(--red-dim); color:var(--red); border:1px solid rgba(255,71,87,0.2); }
+  .btn-success { background:var(--green-dim); color:var(--green); border:1px solid rgba(0,230,118,0.2); }
+  .btn-sm { padding:5px 10px; font-size:11px; border-radius:6px; }
+
+  /* Stats row */
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+
+  .stat-card {
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    position:relative;
+    overflow:hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card::before {
+    content:'';
+    position:absolute;
+    top:0; right:0;
+    width:60px; height:60px;
+    border-radius:0 0 0 60px;
+    opacity:0.08;
+  }
+  .stat-card.blue::before { background:var(--accent); }
+  .stat-card.green::before { background:var(--green); }
+  .stat-card.red::before { background:var(--red); }
+  .stat-card.yellow::before { background:var(--yellow); }
+  .stat-card:hover { border-color:var(--border2); }
+
+  .stat-label { font-size:11px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  .stat-value { font-size:28px; font-weight:900; line-height:1; margin-bottom:6px; }
+  .stat-card.blue .stat-value { color:var(--accent); }
+  .stat-card.green .stat-value { color:var(--green); }
+  .stat-card.red .stat-value { color:var(--red); }
+  .stat-card.yellow .stat-value { color:var(--yellow); }
+  .stat-sub { font-size:11px; color:var(--text3); }
+  .stat-icon { position:absolute; top:16px; left:16px; font-size:22px; opacity:0.6; }
+
+  /* Content grid */
+  .content-grid { display:grid; grid-template-columns:1fr 340px; gap:20px; margin-bottom:20px; }
+
+  /* Cards */
+  .card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  .card-header {
+    padding:16px 20px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .card-title { font-size:14px; font-weight:700; }
+  .card-body { padding:20px; }
+
+  /* Table */
+  .table { width:100%; border-collapse:collapse; }
+  .table th {
+    text-align:right; font-size:10px; font-weight:600;
+    color:var(--text3); text-transform:uppercase; letter-spacing:1px;
+    padding:8px 12px; border-bottom:1px solid var(--border);
+  }
+  .table td {
+    padding:12px; font-size:13px;
+    border-bottom:1px solid rgba(30,45,61,0.5);
+    vertical-align:middle;
+  }
+  .table tr:last-child td { border-bottom:none; }
+  .table tr:hover td { background:rgba(255,255,255,0.02); }
+
+  /* Status badge */
+  .badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:3px 10px; border-radius:20px;
+    font-size:11px; font-weight:600;
+  }
+  .badge::before { content:''; width:5px; height:5px; border-radius:50%; }
+  .badge-online { background:var(--green-dim); color:var(--green); }
+  .badge-online::before { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .badge-offline { background:rgba(74,95,116,0.15); color:var(--text3); }
+  .badge-offline::before { background:var(--text3); }
+  .badge-expired { background:var(--red-dim); color:var(--red); }
+  .badge-expired::before { background:var(--red); }
+  .badge-limited { background:var(--yellow-dim); color:var(--yellow); }
+  .badge-limited::before { background:var(--yellow); }
+
+  /* User avatar */
+  .user-cell { display:flex; align-items:center; gap:10px; }
+  .user-avatar {
+    width:30px; height:30px;
+    background:var(--surface2);
+    border:1px solid var(--border2);
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+    color:var(--accent);
+  }
+  .user-name { font-size:13px; font-weight:600; }
+  .user-id { font-size:10px; color:var(--text3); margin-top:1px; }
+
+  /* Traffic bar */
+  .traffic-bar { display:flex; flex-direction:column; gap:3px; }
+  .traffic-label { font-size:10px; color:var(--text3); display:flex; justify-content:space-between; }
+  .bar-track { height:4px; background:var(--border); border-radius:4px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; transition:width 0.8s ease; }
+  .bar-fill.blue { background:linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .bar-fill.green { background:var(--green); }
+  .bar-fill.red { background:var(--red); }
+
+  /* Server cards */
+  .server-list { display:flex; flex-direction:column; gap:8px; }
+  .server-item {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    display:flex; align-items:center; gap:12px;
+    transition:border-color 0.2s;
+    cursor:pointer;
+  }
+  .server-item:hover { border-color:var(--border2); }
+  .server-flag { width:28px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .server-info { flex:1; }
+  .server-name { font-size:12px; font-weight:600; }
+  .server-proto { font-size:10px; color:var(--text3); margin-top:1px; }
+  .server-load { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+  .server-load-pct { font-size:11px; font-weight:700; }
+  .server-load-bar { width:60px; height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .server-load-fill { height:100%; border-radius:3px; }
+
+  /* Connection status */
+  .conn-status {
+    background: linear-gradient(135deg, var(--surface2), var(--surface));
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:24px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .conn-ring {
+    width:100px; height:100px;
+    border-radius:50%;
+    border:2px solid var(--border2);
+    margin:0 auto 16px;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .conn-ring.active {
+    border-color:var(--green);
+    box-shadow:0 0 0 8px var(--green-dim), 0 0 30px var(--green-dim);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow:0 0 0 8px var(--green-dim), 0 0 30px var(--green-dim); }
+    50% { box-shadow:0 0 0 16px rgba(0,230,118,0.05), 0 0 40px var(--green-dim); }
+  }
+  .conn-icon { font-size:36px; }
+  .conn-label { font-size:18px; font-weight:700; margin-bottom:4px; }
+  .conn-ip { font-size:12px; color:var(--text3); font-family:monospace; }
+
+  /* Traffic chart area */
+  .chart-area {
+    background:var(--surface2);
+    border-radius:10px;
+    padding:16px;
+    margin-top:16px;
+    position:relative;
+    height:80px;
+    overflow:hidden;
+  }
+  .chart-area svg { width:100%; height:100%; }
+
+  /* Inbound panel */
+  .inbound-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .inbound-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+    transition:border-color 0.2s, transform 0.2s;
+  }
+  .inbound-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .inbound-card.selected { border-color:var(--accent); background:var(--accent-dim); }
+  .inbound-proto { font-size:10px; font-weight:700; letter-spacing:2px; color:var(--accent); margin-bottom:6px; }
+  .inbound-name { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .inbound-port { font-size:11px; color:var(--text3); font-family:monospace; }
+  .inbound-count { position:absolute; top:14px; left:14px; background:var(--accent-dim); color:var(--accent); border:1px solid rgba(0,212,255,0.2); padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; }
+
+  /* Modal */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000; opacity:0; pointer-events:none;
+    transition:opacity 0.2s;
+    backdrop-filter:blur(4px);
+  }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal {
+    background:var(--surface);
+    border:1px solid var(--border2);
+    border-radius:16px;
+    padding:24px;
+    width:460px;
+    max-width:90vw;
+    transform:translateY(20px);
+    transition:transform 0.2s;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-overlay.open .modal { transform:translateY(0); }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .modal-title { font-size:16px; font-weight:700; }
+  .modal-close { background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer; }
+  .modal-close:hover { color:var(--text); }
+
+  /* Form */
+  .form-group { margin-bottom:14px; }
+  .form-label { font-size:11px; font-weight:600; color:var(--text3); margin-bottom:6px; display:block; letter-spacing:0.5px; }
+  .form-input {
+    width:100%; background:var(--surface2); border:1px solid var(--border2);
+    border-radius:8px; padding:10px 12px; color:var(--text);
+    font-family:'Vazirmatn',sans-serif; font-size:13px;
+    transition:border-color 0.2s;
+    outline:none;
+  }
+  .form-input:focus { border-color:var(--accent); }
+  .form-input::placeholder { color:var(--text3); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-select { -webkit-appearance:none; appearance:none; cursor:pointer; }
+
+  /* Config copy box */
+  .config-box {
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px;
+    font-family:monospace;
+    font-size:11px;
+    color:var(--text2);
+    word-break:break-all;
+    line-height:1.5;
+    max-height:100px;
+    overflow-y:auto;
+    cursor:pointer;
+    transition:border-color 0.2s;
+  }
+  .config-box:hover { border-color:var(--accent); }
+
+  /* QR placeholder */
+  .qr-box {
+    background:white;
+    border-radius:8px;
+    padding:8px;
+    display:flex; align-items:center; justify-content:center;
+    width:80px; height:80px;
+    font-size:10px; color:#000;
+    text-align:center;
+  }
+
+  /* Notification */
+  .notif {
+    position:fixed; bottom:24px; left:24px;
+    background:var(--surface);
+    border:1px solid var(--green);
+    color:var(--green);
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:13px; font-weight:600;
+    z-index:2000;
+    transform:translateX(-120%);
+    transition:transform 0.3s ease;
+    box-shadow:0 4px 20px rgba(0,230,118,0.2);
+  }
+  .notif.show { transform:translateX(0); }
+
+  /* Tabs */
+  .tabs { display:flex; gap:4px; background:var(--surface2); padding:4px; border-radius:10px; margin-bottom:20px; }
+  .tab {
+    flex:1; padding:8px; text-align:center; border-radius:7px;
+    cursor:pointer; font-size:12px; font-weight:600; color:var(--text3);
+    transition:all 0.2s;
+  }
+  .tab.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.3); }
+
+  /* Page sections */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* IP input dir */
+  .form-input[dir="ltr"] { direction:ltr; text-align:left; }
+
+  /* DNS row */
+  .dns-row {
+    display:flex; align-items:center; gap:8px;
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px; font-size:12px;
+  }
+  .dns-tag { font-size:10px; font-weight:700; color:var(--accent); }
+  .dns-val { font-family:monospace; font-size:12px; color:var(--text2); }
+
+  /* Responsive toggle */
+  .menu-btn { display:none; background:none; border:none; color:var(--text); font-size:22px; cursor:pointer; }
+
+  @media (max-width:900px) {
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+    .content-grid { grid-template-columns:1fr; }
+    .inbound-grid { grid-template-columns:1fr; }
+  }
+  @media (max-width:700px) {
+    .sidebar { transform:translateX(100%); }
+    .sidebar.open { transform:translateX(0); }
+    .main { margin-right:0; }
+    .menu-btn { display:block; }
+    .stats-grid { grid-template-columns:1fr 1fr; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:4px; }
+
+  /* Loading bar */
+  .loading-bar {
+    position:fixed; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index:9999;
+    transform:scaleX(0); transform-origin:right;
+    transition:transform 0.4s ease;
+  }
+  .loading-bar.active { animation:load 1.5s ease infinite; }
+  @keyframes load {
+    0% { transform:scaleX(0); transform-origin:right; }
+    50% { transform:scaleX(0.6); transform-origin:right; }
+    100% { transform:scaleX(1); transform-origin:right; opacity:0; }
+  }
+
+  .empty-state { text-align:center; padding:40px; color:var(--text3); }
+  .empty-icon { font-size:36px; margin-bottom:10px; opacity:0.4; }
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadingBar"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+
+<!-- Notification -->
+<div class="notif" id="notif">✓ عملیات موفق بود</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">➕ افزودن کاربر جدید</div>
+      <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">نام کاربری</label>
+      <input class="form-input" id="newUsername" placeholder="مثلاً: user_01" dir="ltr">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">حجم ترافیک (GB)</label>
+        <input class="form-input" id="newTraffic" type="number" placeholder="50" dir="ltr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">تعداد روز</label>
+        <input class="form-input" id="newDays" type="number" placeholder="30" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">پروتکل</label>
+        <select class="form-input form-select" id="newProto">
+          <option value="vmess">VMess</option>
+          <option value="vless">VLess</option>
+          <option value="trojan">Trojan</option>
+          <option value="shadowsocks">Shadowsocks</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">پورت</label>
+        <input class="form-input" id="newPort" type="number" placeholder="443" dir="ltr">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">یادداشت</label>
+      <input class="form-input" id="newNote" placeholder="اختیاری...">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" style="flex:1" onclick="addUser()">ایجاد کاربر</button>
+      <button class="btn btn-ghost" onclick="closeModal('addUserModal')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Config Modal -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔗 کانفیگ اتصال</div>
+      <button class="modal-close" onclick="closeModal('configModal')">✕</button>
+    </div>
+    <div id="configContent"></div>
+  </div>
+</div>
+
+<!-- Add Inbound Modal -->
+<div class="modal-overlay" id="addInboundModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🌐 اضافه کردن اینباند</div>
+      <button class="modal-close" onclick="closeModal('addInboundModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">نام اینباند</label>
+      <input class="form-input" id="ibName" placeholder="مثلاً: Main_VMess">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">پروتکل</label>
+        <select class="form-input form-select" id="ibProto">
+          <option>VMess</option><option>VLess</option><option>Trojan</option><option>Shadowsocks</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">پورت</label>
+        <input class="form-input" id="ibPort" type="number" placeholder="443" dir="ltr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Transport</label>
+        <select class="form-input form-select" id="ibTransport">
+          <option>TCP</option><option>WebSocket</option><option>gRPC</option><option>HTTP/2</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">TLS</label>
+        <select class="form-input form-select" id="ibTLS">
+          <option>بدون TLS</option><option>TLS</option><option>Reality</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">دامنه / آدرس سرور</label>
+      <input class="form-input" id="ibAddr" placeholder="example.com" dir="ltr">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" style="flex:1" onclick="addInbound()">ایجاد اینباند</button>
+      <button class="btn btn-ghost" onclick="closeModal('addInboundModal')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Nex<span>vir</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">منو اصلی</div>
+      <div class="nav-item active" onclick="goTo('dashboard',this)">
+        <span class="icon">🏠</span> داشبورد
+      </div>
+      <div class="nav-item" onclick="goTo('users',this)">
+        <span class="icon">👥</span> مدیریت کاربران
+        <span class="nav-badge green" id="userCount">4</span>
+      </div>
+      <div class="nav-item" onclick="goTo('inbounds',this)">
+        <span class="icon">🌐</span> اینباندها
+      </div>
+      <div class="nav-section">شبکه</div>
+      <div class="nav-item" onclick="goTo('servers',this)">
+        <span class="icon">🖥️</span> سرورها
+      </div>
+      <div class="nav-item" onclick="goTo('dns',this)">
+        <span class="icon">🔍</span> تنظیمات DNS
+      </div>
+      <div class="nav-section">سیستم</div>
+      <div class="nav-item" onclick="goTo('settings',this)">
+        <span class="icon">⚙️</span> تنظیمات
+      </div>
+      <div class="nav-item" onclick="goTo('logs',this)">
+        <span class="icon">📋</span> لاگ‌ها
+        <span class="nav-badge" id="logBadge">3</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-avatar">👤</div>
+      <div class="admin-info">
+        <div class="admin-name">Admin</div>
+        <div class="admin-role">Nexvir v1.0.0</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="page-title" id="pageTitle">داشبورد <span>Nexvir</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost" onclick="refresh()">🔄 رفرش</button>
+        <button class="btn btn-primary" onclick="openModal('addUserModal')">+ کاربر جدید</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-icon">👥</div>
+          <div class="stat-label">کل کاربران</div>
+          <div class="stat-value" id="stat-total">4</div>
+          <div class="stat-sub">۲ آنلاین / ۲ آفلاین</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">📶</div>
+          <div class="stat-label">ترافیک امروز</div>
+          <div class="stat-value">18.4</div>
+          <div class="stat-sub">گیگابایت</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-label">منقضی شده</div>
+          <div class="stat-value" id="stat-expired">1</div>
+          <div class="stat-sub">نیاز به تمدید</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-label">آپتایم سرور</div>
+          <div class="stat-value">99.2</div>
+          <div class="stat-sub">درصد</div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <!-- Left: Users table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👥 کاربران اخیر</div>
+            <button class="btn btn-ghost btn-sm" onclick="goTo('users',null)">مشاهده همه</button>
+          </div>
+          <table class="table" id="dashUserTable">
+            <thead>
+              <tr>
+                <th>کاربر</th>
+                <th>وضعیت</th>
+                <th>ترافیک</th>
+                <th>انقضا</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="dashUserBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Right: Status + Servers -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="conn-status">
+            <div class="conn-ring active">
+              <div class="conn-icon">🛡️</div>
+            </div>
+            <div class="conn-label" style="color:var(--green)">پنل فعال است</div>
+            <div class="conn-ip" id="serverIP">آدرس: 0.0.0.0 | پورت پنل: 54321</div>
+            <div class="chart-area" style="margin-top:12px;">
+              <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path id="trafficPath" fill="url(#g1)" stroke="#00d4ff" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🖥️ وضعیت سرورها</div>
+            </div>
+            <div class="card-body" style="padding:12px;">
+              <div class="server-list" id="serverListDash"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS PAGE -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">👥 مدیریت کاربران</div>
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" style="width:200px;padding:6px 12px;font-size:12px;" placeholder="🔍 جستجو..." id="userSearch" oninput="filterUsers()">
+            <button class="btn btn-primary btn-sm" onclick="openModal('addUserModal')">+ افزودن</button>
+          </div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>کاربر</th>
+              <th>پروتکل</th>
+              <th>وضعیت</th>
+              <th>ترافیک</th>
+              <th>انقضا</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+          <tbody id="fullUserBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INBOUNDS PAGE -->
+    <div class="page" id="page-inbounds">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div></div>
+        <button class="btn btn-primary" onclick="openModal('addInboundModal')">+ اضافه کردن اینباند</button>
+      </div>
+      <div class="inbound-grid" id="inboundGrid"></div>
+    </div>
+
+    <!-- SERVERS PAGE -->
+    <div class="page" id="page-servers">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🖥️ سرورها</div>
+          <button class="btn btn-primary btn-sm" onclick="notify('قابلیت افزودن سرور در نسخه بعدی')">+ سرور جدید</button>
+        </div>
+        <div class="card-body">
+          <div class="server-list" id="fullServerList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DNS PAGE -->
+    <div class="page" id="page-dns">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-title">🔍 سرورهای DNS فعال</div>
+          <button class="btn btn-primary btn-sm" onclick="notify('DNS ذخیره شد')">💾 ذخیره</button>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="dns-row"><span class="dns-tag">اول</span><span class="dns-val">1.1.1.1</span><span style="margin-right:auto;font-size:10px;color:var(--green)">● Cloudflare</span></div>
+          <div class="dns-row"><span class="dns-tag">دوم</span><span class="dns-val">8.8.8.8</span><span style="margin-right:auto;font-size:10px;color:var(--green)">● Google DNS</span></div>
+          <div class="dns-row"><span class="dns-tag">سوم</span><span class="dns-val">9.9.9.9</span><span style="margin-right:auto;font-size:10px;color:var(--text3)">● Quad9</span></div>
+          <div class="dns-row"><span class="dns-tag">چهارم</span><input class="form-input" style="height:28px;padding:4px 8px;font-size:12px;" placeholder="DNS سفارشی..." dir="ltr"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🚧 بایپس تحریم (نت ملی)</div>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="font-size:12px;color:var(--text2);line-height:1.7;">
+            برای کار کردن در شرایط نت ملی، از DNS-over-HTTPS و یا DNS-over-TLS استفاده کنید. همچنین می‌توانید مسیریابی را برای دامنه‌های ایرانی جداگانه تنظیم نمایید.
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-success btn-sm" onclick="notify('DNS over HTTPS فعال شد')">✅ فعال‌سازی DoH</button>
+            <button class="btn btn-ghost btn-sm" onclick="notify('مسیریابی داخلی ذخیره شد')">🔀 مسیریابی داخلی</button>
+            <button class="btn btn-ghost btn-sm" onclick="notify('فایل GeoIP به‌روز شد')">🗺️ بروزرسانی GeoIP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="card" style="max-width:600px;">
+        <div class="card-header">
+          <div class="card-title">⚙️ تنظیمات پنل</div>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">دامنه سرور</label>
+            <input class="form-input" id="settingDomain" placeholder="your.domain.com" dir="ltr">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">پورت پنل</label>
+              <input class="form-input" id="settingPort" placeholder="3000" dir="ltr">
+            </div>
+            <div class="form-group">
+              <label class="form-label">مسیر Subscription</label>
+              <input class="form-input" id="settingSubPath" placeholder="/sub" dir="ltr">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button class="btn btn-primary" style="flex:1" onclick="saveSettings()">💾 ذخیره تنظیمات</button>
+            <button class="btn btn-danger" onclick="logout()">🚪 خروج</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGS PAGE -->
+    <div class="page" id="page-logs">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 لاگ‌های سیستم</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="clearLogs()">🗑️ پاک کردن</button>
+            <button class="btn btn-ghost btn-sm" onclick="refresh()">🔄 رفرش</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div id="logsContainer" style="font-family:monospace;font-size:11px;padding:16px;max-height:500px;overflow-y:auto;line-height:1.8;color:var(--text2);"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  Nexvir Panel — Frontend with real API integration
+// ══════════════════════════════════════════════════════════
+
+// ── Auth guard ────────────────────────────────────────────
+const TOKEN = localStorage.getItem('nexvir_token');
+if (!TOKEN) window.location.href = '/login.html';
+
+// ── API helper ────────────────────────────────────────────
+async function api(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/api' + path, opts);
+  if (res.status === 401) { localStorage.clear(); window.location.href = '/login.html'; }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'خطای سرور');
+  return data;
+}
+
+// ── State ─────────────────────────────────────────────────
+let users = [], inbounds = [], servers = [], logs_data = [];
+
+// ── Navigation ────────────────────────────────────────────
+const pageTitles = {
+  dashboard: 'داشبورد <span>Nexvir</span>',
+  users: 'مدیریت <span>کاربران</span>',
+  inbounds: '<span>اینباند</span>ها',
+  servers: '<span>سرور</span>ها',
+  dns: 'تنظیمات <span>DNS</span>',
+  settings: '<span>تنظیمات</span>',
+  logs: '<span>لاگ</span>‌های سیستم',
+};
+
+function goTo(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').innerHTML = pageTitles[page] || page;
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'users') loadUsers();
+  if (page === 'inbounds') loadInbounds();
+  if (page === 'servers') loadServers();
+  if (page === 'logs') loadLogs();
+  if (page === 'settings') loadSettings();
+  closeSidebar();
+}
+
+// ── Render helpers ────────────────────────────────────────
+function pct(u, t) { return Math.min(100, Math.round((u / t) * 100)); }
+function barColor(p) { return p >= 90 ? 'red' : p >= 60 ? '' : 'blue'; }
+function statusBadge(s) {
+  const m = { online: 'online', offline: 'offline', expired: 'expired', limited: 'limited' };
+  const l = { online: 'آنلاین', offline: 'آفلاین', expired: 'منقضی', limited: 'محدود' };
+  return `<span class="badge badge-${m[s] || 'offline'}">${l[s] || s}</span>`;
+}
+function daysLeft(d) {
+  return d <= 0
+    ? `<span style="color:var(--red)">${d} روز</span>`
+    : `<span style="color:var(--text2)">${d} روز</span>`;
+}
+
+function userRow(u, short = false) {
+  const used = u.traffic_used ?? u.used ?? 0;
+  const total = u.traffic_total ?? u.total ?? 50;
+  const p = pct(used, total);
+  const bc = barColor(p);
+  const days = u.days ?? 0;
+  if (short) return `
+    <tr>
+      <td><div class="user-cell"><div class="user-avatar">${u.name[0].toUpperCase()}</div><div><div class="user-name">${u.name}</div><div class="user-id">${u.proto}</div></div></div></td>
+      <td>${statusBadge(u.status)}</td>
+      <td><div class="traffic-bar"><div class="traffic-label"><span>${used}/${total} GB</span><span>${p}%</span></div><div class="bar-track"><div class="bar-fill ${bc}" style="width:${p}%"></div></div></div></td>
+      <td>${daysLeft(days)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="showConfig('${u.id}')">🔗 کانفیگ</button></td>
+    </tr>`;
+  return `
+    <tr>
+      <td><div class="user-cell"><div class="user-avatar">${u.name[0].toUpperCase()}</div><div><div class="user-name">${u.name}</div><div class="user-id" style="font-family:monospace">#${u.id}</div></div></div></td>
+      <td><span style="font-size:12px;color:var(--accent)">${u.proto}</span></td>
+      <td>${statusBadge(u.status)}</td>
+      <td><div class="traffic-bar"><div class="traffic-label"><span>${used}/${total} GB</span><span>${p}%</span></div><div class="bar-track"><div class="bar-fill ${bc}" style="width:${p}%"></div></div></div></td>
+      <td>${daysLeft(days)}</td>
+      <td style="white-space:nowrap;display:flex;gap:4px;padding:8px 12px;">
+        <button class="btn btn-ghost btn-sm" onclick="showConfig('${u.id}')">🔗</button>
+        <button class="btn btn-success btn-sm" onclick="toggleUser('${u.id}')">⏸</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑</button>
+      </td>
+    </tr>`;
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [stats, usersData, serversData] = await Promise.all([
+      api('/users/stats'),
+      api('/users'),
+      api('/servers')
+    ]);
+    users = usersData;
+    servers = serversData;
+    document.getElementById('stat-total').textContent = stats.total;
+    document.getElementById('stat-expired').textContent = stats.expired;
+    document.getElementById('userCount').textContent = stats.online;
+    document.getElementById('dashUserBody').innerHTML = users.slice(0, 4).map(u => userRow(u, true)).join('');
+    renderServersBlock('serverListDash', servers);
+    drawTrafficChart();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+// ── Users ─────────────────────────────────────────────────
+async function loadUsers(search = '') {
+  try {
+    const q = search ? `?search=${encodeURIComponent(search)}` : '';
+    users = await api('/users' + q);
+    document.getElementById('fullUserBody').innerHTML = users.length
+      ? users.map(u => userRow(u, false)).join('')
+      : '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div>کاربری یافت نشد</div></td></tr>';
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+function filterUsers() { loadUsers(document.getElementById('userSearch').value); }
+
+async function addUser() {
+  const name = document.getElementById('newUsername').value.trim();
+  if (!name) { notify('نام کاربری را وارد کنید', 'error'); return; }
+  try {
+    await api('/users', 'POST', {
+      name,
+      proto: document.getElementById('newProto').value,
+      traffic_total: parseInt(document.getElementById('newTraffic').value) || 50,
+      days: parseInt(document.getElementById('newDays').value) || 30,
+      note: document.getElementById('newNote').value
+    });
+    closeModal('addUserModal');
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newNote').value = '';
+    notify(`کاربر ${name} اضافه شد`);
+    await loadUsers();
+    await loadDashboard();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+async function deleteUser(id) {
+  if (!confirm('آیا مطمئن هستید؟')) return;
+  try {
+    const u = users.find(x => x.id === id);
+    await api('/users/' + id, 'DELETE');
+    notify(`کاربر ${u?.name} حذف شد`);
+    await loadUsers();
+    await loadDashboard();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+async function toggleUser(id) {
+  try {
+    const res = await api('/users/' + id + '/toggle', 'POST');
+    const u = users.find(x => x.id === id);
+    notify(`وضعیت ${u?.name} به ${res.status === 'online' ? 'آنلاین' : 'آفلاین'} تغییر کرد`);
+    await loadUsers();
+    await loadDashboard();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+async function showConfig(id) {
+  try {
+    const cfg = await api('/users/' + id + '/config');
+    const u = users.find(x => x.id === id);
+    document.getElementById('configContent').innerHTML = `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span class="form-label">کانفیگ ${cfg.proto}</span>
+          ${statusBadge(u?.status || 'offline')}
+        </div>
+        <div class="config-box" onclick="copyText(this.textContent)">${cfg.link}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">کلیک کنید تا کپی شود</div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="form-label" style="margin-bottom:6px;">لینک اشتراک</div>
+        <div class="config-box" onclick="copyText(this.textContent)">${cfg.sub}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-primary" style="flex:1" onclick="copyText('${cfg.link}');notify('کانفیگ کپی شد')">📋 کپی کانفیگ</button>
+        <button class="btn btn-ghost" onclick="notify('لینک ساب کپی شد');copyText('${cfg.sub}')">🔗 کپی ساب</button>
+      </div>`;
+    openModal('configModal');
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+// ── Inbounds ──────────────────────────────────────────────
+async function loadInbounds() {
+  try {
+    inbounds = await api('/inbounds');
+    document.getElementById('inboundGrid').innerHTML = inbounds.map(ib => `
+      <div class="inbound-card">
+        <span class="inbound-count">${ib.user_count ?? ib.users ?? 0} کاربر</span>
+        <div class="inbound-proto">${ib.proto}</div>
+        <div class="inbound-name">${ib.name}</div>
+        <div class="inbound-port">پورت: ${ib.port} | ${ib.transport} | ${ib.tls}</div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <button class="btn btn-danger btn-sm" onclick="deleteInbound('${ib.id}')">🗑 حذف</button>
+        </div>
+      </div>`).join('') + `
+      <div class="inbound-card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openModal('addInboundModal')">
+        <div style="text-align:center;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">+</div><div style="font-size:12px">اینباند جدید</div></div>
+      </div>`;
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+async function addInbound() {
+  const name = document.getElementById('ibName').value.trim();
+  if (!name) { notify('نام اینباند را وارد کنید', 'error'); return; }
+  try {
+    await api('/inbounds', 'POST', {
+      name,
+      proto: document.getElementById('ibProto').value,
+      port: parseInt(document.getElementById('ibPort').value) || 443,
+      transport: document.getElementById('ibTransport').value,
+      tls: document.getElementById('ibTLS').value,
+      addr: document.getElementById('ibAddr').value || 'your.domain.com'
+    });
+    closeModal('addInboundModal');
+    document.getElementById('ibName').value = '';
+    notify(`اینباند ${name} اضافه شد`);
+    await loadInbounds();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+async function deleteInbound(id) {
+  if (!confirm('آیا مطمئن هستید؟')) return;
+  try {
+    await api('/inbounds/' + id, 'DELETE');
+    notify('اینباند حذف شد');
+    await loadInbounds();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+// ── Servers ───────────────────────────────────────────────
+async function loadServers() {
+  try {
+    servers = await api('/servers');
+    renderServersBlock('fullServerList', servers);
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+function renderServersBlock(containerId, serverList) {
+  const list = serverList || servers;
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = list.map(s => {
+    const load = s.load || 0;
+    const c = load >= 70 ? 'red' : load >= 50 ? 'yellow' : 'green';
+    return `<div class="server-item">
+      <div class="server-flag">${s.flag}</div>
+      <div class="server-info"><div class="server-name">${s.name}</div><div class="server-proto">${s.proto}</div></div>
+      <div class="server-load">
+        <div class="server-load-pct" style="color:var(--${c})">${load}%</div>
+        <div class="server-load-bar"><div class="server-load-fill" style="width:${load}%;background:var(--${c})"></div></div>
+        ${statusBadge(s.online ? 'online' : 'offline')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Logs ──────────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    logs_data = await api('/logs');
+    const lvlColor = { INFO: 'var(--text2)', WARN: 'var(--yellow)', ERROR: 'var(--red)' };
+    document.getElementById('logsContainer').innerHTML = logs_data.map(l => {
+      const t = l.created_at ? new Date(l.created_at).toLocaleTimeString('fa-IR') : l.t || '';
+      return `<div><span style="color:var(--text3)">[${t}]</span> <span style="color:${lvlColor[l.level] || 'var(--text2)'};font-weight:600">${l.level}</span> <span>${l.msg}</span></div>`;
+    }).join('');
+    document.getElementById('logBadge').textContent = logs_data.length;
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+async function clearLogs() {
+  try {
+    await api('/logs', 'DELETE');
+    notify('لاگ‌ها پاک شدند');
+    await loadLogs();
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+// ── Settings ──────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const s = await api('/settings');
+    if (s.domain) document.getElementById('settingDomain').value = s.domain;
+    if (s.panel_port) document.getElementById('settingPort').value = s.panel_port;
+    if (s.sub_path) document.getElementById('settingSubPath').value = s.sub_path;
+  } catch (e) {}
+}
+
+async function saveSettings() {
+  try {
+    await api('/settings', 'PUT', {
+      domain: document.getElementById('settingDomain').value,
+      panel_port: document.getElementById('settingPort').value,
+      sub_path: document.getElementById('settingSubPath').value,
+    });
+    notify('تنظیمات با موفقیت ذخیره شد');
+  } catch (e) { notify(e.message, 'error'); }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = '/login.html';
+}
+
+// ── Traffic chart ─────────────────────────────────────────
+function drawTrafficChart() {
+  const pts = Array.from({ length: 20 }, () => Math.random() * 50 + 10);
+  const w = 300, h = 60;
+  const mn = Math.min(...pts), mx = Math.max(...pts);
+  const x = i => i * (w / (pts.length - 1));
+  const y = v => h - ((v - mn) / (mx - mn || 1)) * (h - 8) - 4;
+  let d = `M ${x(0)},${y(pts[0])}`;
+  for (let i = 1; i < pts.length; i++) d += ` L ${x(i)},${y(pts[i])}`;
+  const fill = d + ` L ${w},${h} L 0,${h} Z`;
+  const el = document.getElementById('trafficPath');
+  if (el) el.setAttribute('d', fill);
+}
+
+// ── Utilities ─────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function notify(msg, type = 'success') {
+  const el = document.getElementById('notif');
+  el.textContent = (type === 'success' ? '✓ ' : '⚠ ') + msg;
+  el.style.borderColor = type === 'success' ? 'var(--green)' : 'var(--yellow)';
+  el.style.color = type === 'success' ? 'var(--green)' : 'var(--yellow)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function copyText(t) { navigator.clipboard.writeText(t).catch(() => {}); }
+
+async function refresh() {
+  const bar = document.getElementById('loadingBar');
+  bar.classList.add('active');
+  try {
+    await loadDashboard();
+    notify('اطلاعات به‌روز شد');
+  } catch (e) { notify(e.message, 'error'); }
+  finally { bar.classList.remove('active'); }
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+
+// Set admin username in sidebar
+const adminName = localStorage.getItem('nexvir_user');
+if (adminName) {
+  const el = document.querySelector('.admin-name');
+  if (el) el.textContent = adminName;
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── Init ──────────────────────────────────────────────────
+loadDashboard();
+
+setInterval(() => {
+  if (document.getElementById('page-dashboard').classList.contains('active')) {
+    drawTrafficChart();
+  }
+}, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "nexvir-panel",
+  "version": "1.0.0",
+  "description": "Nexvir VPN Management Panel — پنل مدیریت VPN",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "dev": "cd backend && npm run dev",
+    "install-deps": "cd backend && npm install"
+  }
+}
